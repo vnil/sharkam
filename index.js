@@ -11,8 +11,8 @@ let state = {
   cameraX: 0,
   cameraY: 0,
   light: false,
-  temperature: 10,
-  leak: true
+  temperature: 0,
+  leak: false
 };
 
 const SERVO_MIN_DEG = -90;

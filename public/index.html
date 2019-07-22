@@ -14,21 +14,19 @@
       <div class="top">
         <span class="info"
           ><i class="fas fa-thermometer-quarter"></i>
-          <span id="temperature">10</span>°</span
+          <span id="temperature">-</span>°</span
         >
         <span class="info"
           ><i class="fas fa-tint-slash"></i>
           <i class="fas fa-check-circle" id="leak"></i
-          ><!-- <i class="fas fa-times"></i
-        > --></span
-        >
+        ></span>
         <span class="info"
           ><i class="fas fa-arrows-alt-h"></i>
-          <span id="cameraX">32</span>°</span
+          <span id="cameraX">-</span>°</span
         >
         <span class="info"
           ><i class="fas fa-arrows-alt-v"></i>
-          <span id="cameraY">76</span>°</span
+          <span id="cameraY">-</span>°</span
         >
       </div>
       <div class="stream-container">
@@ -64,7 +62,11 @@
         document.getElementById("cameraX").innerHTML = state.cameraX;
         document.getElementById("cameraY").innerHTML = state.cameraY;
         document.getElementById("temperature").innerHTML = state.temperature;
-        document.getElementById("light").classList.toggle("active");
+        if (state.light) {
+          document.getElementById("light").classList.add("active");
+        } else {
+          document.getElementById("light").classList.remove("active");
+        }
         document
           .getElementById("leak")
           .classList.remove(state.leak ? "fa-check-circle" : "fa-times");
@@ -86,6 +88,23 @@
           );
       };
 
+      const longPress = (id, type, value, interval = 100, delay = 1000) => {
+        let timer = undefined;
+        let timeout = undefined;
+        document.getElementById(id).addEventListener("mousedown", () => {
+          timeout = setTimeout(() => {
+            timer = setInterval(() => {
+              ws.send(JSON.stringify({ type, value }));
+            }, interval);
+          }, delay);
+        });
+
+        document.getElementById(id).addEventListener("mouseup", () => {
+          clearInterval(timer);
+          clearInterval(timeout);
+        });
+      };
+
       const ws = new WebSocket("ws://localhost:3000");
       ws.onmessage = event => {
         const obj = JSON.parse(event.data);
@@ -97,6 +116,11 @@
       bindDomToAction("right", "cameraX", 1);
       bindDomToAction("left", "cameraX", -1);
       bindDomToAction("light", "light");
+
+      longPress("up", "cameraY", 1, 100);
+      longPress("down", "cameraY", -1, 100);
+      longPress("right", "cameraX", 1, 100);
+      longPress("left", "cameraX", -1, 100);
     </script>
   </body>
 </html>
