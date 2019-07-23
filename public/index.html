@@ -14,8 +14,12 @@
       <div class="top">
         <span class="info"
           ><i class="fas fa-thermometer-quarter"></i>
-          <span id="temperature">-</span>°</span
+          <span id="temperature">-</span>°C</span
         >
+        <span class="info"
+          ><i class="fas fa-cloud-rain"></i> <span id="humidity">-</span>%</span
+        >
+
         <span class="info"
           ><i class="fas fa-tint-slash"></i>
           <i class="fas fa-check-circle" id="leak"></i
@@ -62,6 +66,7 @@
         document.getElementById("cameraX").innerHTML = state.cameraX;
         document.getElementById("cameraY").innerHTML = state.cameraY;
         document.getElementById("temperature").innerHTML = state.temperature;
+        document.getElementById("humidity").innerHTML = state.humidity;
         if (state.light) {
           document.getElementById("light").classList.add("active");
         } else {
@@ -91,18 +96,24 @@
       const longPress = (id, type, value, interval = 100, delay = 1000) => {
         let timer = undefined;
         let timeout = undefined;
-        document.getElementById(id).addEventListener("mousedown", () => {
+
+        const start = () => {
           timeout = setTimeout(() => {
             timer = setInterval(() => {
               ws.send(JSON.stringify({ type, value }));
             }, interval);
           }, delay);
-        });
+        };
 
-        document.getElementById(id).addEventListener("mouseup", () => {
+        const stop = () => {
           clearInterval(timer);
           clearInterval(timeout);
-        });
+        };
+
+        document.getElementById(id).addEventListener("mousedown", start);
+        document.getElementById(id).addEventListener("touchstart", start);
+        document.getElementById(id).addEventListener("mouseup", stop);
+        document.getElementById(id).addEventListener("touchend", stop);
       };
 
       const ws = new WebSocket("ws://localhost:3000");
