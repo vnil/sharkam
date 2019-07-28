@@ -34,7 +34,8 @@
         >
       </div>
       <div class="stream-container">
-        <img src="images/mock.jpg" class="stream" />
+        <!--<img src="images/mock.jpg" class="stream" />-->
+        <img id="stream_id" class="stream" />
         <div class="navigator">
           <div id="up" class="nav-button">
             <i class="fas fa-chevron-up"></i>
@@ -116,11 +117,9 @@
         document.getElementById(id).addEventListener("touchend", stop);
       };
 
-      const ws = new WebSocket("ws://localhost:3000");
-      ws.onmessage = event => {
-        const obj = JSON.parse(event.data);
-        updateUI(obj);
-      };
+      const ws = new WebSocket("ws://" + window.location.host);
+
+      ws.onmessage = event => updateUI(JSON.parse(event.data));
 
       bindDomToAction("up", "cameraY", 1);
       bindDomToAction("down", "cameraY", -1);
@@ -132,6 +131,9 @@
       longPress("down", "cameraY", -1, 100);
       longPress("right", "cameraX", 1, 100);
       longPress("left", "cameraX", -1, 100);
+
+      document.getElementById("stream_id").src =
+        "http://" + window.location.hostname + ":8080/stream/video.mjpeg";
     </script>
   </body>
 </html>

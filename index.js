@@ -6,20 +6,20 @@ const http = require("http");
 const Gpio = PI_ENV ? require("pigpio").Gpio : require("pigpio-mock").Gpio;
 var dhtSensor = require("node-dht-sensor");
 
-//OUTPUTS
 const SERVO_MIN_DEG = 0;
 const SERVO_MAX_DEG = 180;
-const SERVO_X_PIN = 12;
-const SERVO_Y_PIN = 13;
-const LIGHT_PIN = 14;
+
+//OUTPUTS
+const SERVO_X_PIN = 20;
+const SERVO_Y_PIN = 21;
+const LIGHT_PIN = 12;
 
 //INPUTS
-const TEMP_SENSOR = 15;
+const TEMP_SENSOR = 16;
 
 const gpioServoX = new Gpio(SERVO_X_PIN, { mode: Gpio.OUTPUT });
 const gpioServoY = new Gpio(SERVO_Y_PIN, { mode: Gpio.OUTPUT });
 const gpioLight = new Gpio(LIGHT_PIN, { mode: Gpio.OUTPUT });
-//const gpioTempSensor = dht(TEMP_SENSOR, 11);
 
 const app = express();
 
@@ -61,16 +61,16 @@ const reduce = (state, action) => {
       };
     case "light":
       return { ...state, light: !state.light };
+    case "temperature":
+      return { ...state, temperature: action.value };
+    case "humidity":
+      return { ...state, humidity: action.value };
     default:
       return state;
   }
 };
 
-const degToServoPulse = deg => {
-  let k = clamp(2000, 1000, Math.round(deg / 0.18 + 1000));
-  console.log(k, Math.round(deg / 0.18 + 1000), deg);
-  return k;
-};
+const degToServoPulse = deg => clamp(2000, 1000, Math.round(deg / 0.18 + 1000));
 
 const updateGPIO = () => {
   gpioServoX.servoWrite(degToServoPulse(state.cameraX));
@@ -86,32 +86,15 @@ const listenGPIO = () => {
 
   setInterval(() => {
     dhtSensor.read(11, TEMP_SENSOR, function(err, temperature, humidity) {
-      //TODO Defined 11 or 22
       if (!err) {
-        handleAction({ type: "temperature", value: temperature.toFixed(1) });
-        handleAction({ type: "humidity", value: humidity.toFixed(1) });
-        console.log(
-          "temp: " +
-            temperature.toFixed(1) +
-            "°C, " +
-            "humidity: " +
-            humidity.toFixed(1) +
-            "%"
-        );
+        handleAction({
+          type: "temperature",
+          value: Math.round(temperature)
+        });
+        handleAction({ type: "humidity", value: Math.round(humidity) });
       }
     });
   }, 3000);
-
-  sensor.on("result", data => {
-    console.log(`temp: ${data.temperature}°c`);
-    console.log(`rhum: ${data.humidity}%`);
-    handleAction({ type: "temperature", value: data.temperature });
-    handleAction({ type: "humidity", value: data.humidity });
-  });
-
-  sensor.on("badChecksum", () => {
-    console.log("checksum failed");
-  });
 };
 
 const handleAction = action => {
@@ -134,5 +117,5 @@ server.listen(process.env.PORT || 3000, () => {
   console.log(`Server started on port ${server.address().port} :)`);
 });
 
-//listenGPIO();
+listenGPIO();
 app.use(express.static("public"));

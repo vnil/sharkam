@@ -92,6 +92,7 @@ body {
 .stream {
   width: auto;
   height: calc(100vh - 110px);
+  object-fit: contain;
 }
 
 .button {
